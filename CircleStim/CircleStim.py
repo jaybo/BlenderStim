@@ -26,7 +26,6 @@ def init_world():
     objects = G.scenes["main"].objects
 
     R.showMouse(True)
-    set_mouse_position()
 
     # Modes - Mouse (default) [S]cale [R]otate [C]olor [F]requency [A]spect
     G.mode = "Mouse"
@@ -40,6 +39,7 @@ def init_world():
     print (G.stim)
 
     G.plane = Plane(Vector((0,0,0)), Vector ((0,0,1)))
+    print ('init_world')
 
 
 
@@ -79,12 +79,6 @@ def keyboard(cont):
 
         print (G.mode)
 
-def set_mouse_position():
-    #screen_width  =R.getWindowWidth()
-    #screen_height =R.getWindowHeight()
-
-    #R.setMousePosition(screen_width//2, screen_height//2)
-    G.mouse.position = 0.5,0.5 
 
 # ###############################################################################
 #     Mouse Movement
@@ -105,12 +99,12 @@ def track_mouse(sensor):
     # print ("rays ", ray_p0, ray_p1)
     intersection = geometry.intersect_line_plane(ray_p0, ray_p1, G.plane.p, G.plane.n)
 
-
     if intersection:
         print (intersection)
         G.stim.worldPosition = [intersection.x, intersection.y, G.stim.worldPosition[2]]
         # G.hole.worldPosition = [intersection.x, intersection.y, G.hole.worldPosition[2]]
     
+
 def follow_mouse(sensor):
 
     screen_width  =R.getWindowWidth()
