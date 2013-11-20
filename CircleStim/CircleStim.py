@@ -2,9 +2,6 @@
 # CircleStim
 #
 
-# ###############################################################################
-# Import all the needed python modules
-# ###############################################################################
 from bge import logic as G
 from bge import render as R
 from bge import events as GK
@@ -31,10 +28,14 @@ def init_world():
     G.mode = "Mouse"
     G.hole = objects["Hole"] 
     G.stim = objects["Stim"]
-    # G.stim = objects["Suzanne"]
-    G.rot = 0.0
+    # G.hole = objects["Suzanne"]
+
+    G.stimRot = 0.0
     G.stimScaleFactor = 1.0 
+    G.stimLocation = [0.0, 0.0, 0.0]
+
     G.holeScaleFactor = 1.0 
+    G.holeLocation = [0.0, 0.0, 0.0]
     print (G.hole)
     print (G.stim)
 
@@ -59,13 +60,17 @@ def keyboard(cont):
 
             if value == GK.AKEY:
                 G.mode = 'Aspect'
-                G.hole.applyMovement ([1,1,0])
-                G.stim.applyMovement([1,1,0])
+                G.stimScaleFactor *= 2.0 
+                G.stim.worldScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
+                G.hole.worldScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
             elif value == GK.SKEY:
                 G.mode = 'Scale'
-                G.stimScaleFactor /= 2
+                G.stimScaleFactor /= 2.0 
                 G.stim.worldScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
-                # G.hole.localScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
+                G.hole.worldScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
+            elif value == GK.RKEY:
+                G.mode = 'Rotate'
+                G.stim.applyRotation ([0.0, 0.0, .1])
             elif value == GK.CKEY:
                 G.mode = 'Color'
             elif value == GK.FKEY:
@@ -78,7 +83,18 @@ def keyboard(cont):
                 G.hole.worldPosition = [0, 0, G.hole.worldPosition[2]]
 
         print (G.mode)
+ 
+def vsync (cont):
+    owner = cont.owner
+    sensor = cont.sensors["s_vsync"]
 
+    # if sensor.positive: 
+    G.stim.worldPosition = G.stimLocation.copy()
+    G.hole.worldPosition = G.holeLocation.copy()
+
+    # print (G.stim.worldPosition)
+    print (G.hole.worldPosition)
+    print ('vsync ')
 
 # ###############################################################################
 #     Mouse Movement
@@ -89,20 +105,20 @@ def mouse_move(cont):
 
     #print(dir(sensor))
 
-    track_mouse(sensor)
+    follow_mouse_intersection(sensor)
     # follow_mouse(sensor)
 
 
-def track_mouse(sensor):
+def follow_mouse_intersection(sensor):
     ray_p0 = sensor.raySource
     ray_p1 = sensor.rayTarget
     # print ("rays ", ray_p0, ray_p1)
     intersection = geometry.intersect_line_plane(ray_p0, ray_p1, G.plane.p, G.plane.n)
 
     if intersection:
-        print (intersection)
-        G.stim.worldPosition = [intersection.x, intersection.y, G.stim.worldPosition[2]]
-        # G.hole.worldPosition = [intersection.x, intersection.y, G.hole.worldPosition[2]]
+        # print (intersection)
+        G.stimLocation = [intersection.x, intersection.y, G.stim.worldPosition[2]]
+        G.holeLocation = [intersection.x, intersection.y, G.hole.worldPosition[2]]
     
 
 def follow_mouse(sensor):
@@ -111,21 +127,13 @@ def follow_mouse(sensor):
     screen_height =R.getWindowHeight()
 
     win_x, win_y = sensor.position
-    # print (sensor.position)
 
     x = win_x - screen_width/ 2#/ screen_width - 0.5
-
     y = screen_height/2 - win_y # - 0.5 #/ 2#/ screen_height - 0.5
 
-    print (x,y)
-    # y = top_limit + (y * (bottom_limit - top_limit))
+    G.stimLocation = [x, y, G.stim.worldPosition[2]]
+    G.holeLocation = [x, y, G.hole.worldPosition[2]]
 
-    # flip the vertical movement
-    # y = m.pi/2 - y
-
-    G.stim.worldPosition = [x, y, G.stim.worldPosition[2]]
-    G.hole.worldPosition = [x, y, G.hole.worldPosition[2]]
-
-    print (G.stim.worldPosition)
-    print (G.stim.localPosition)
+    # print (G.stimLocation)
+    # print (G.stimLocation)
     # print (sensor.hitPosition)
