@@ -61,13 +61,12 @@ def keyboard(cont):
             if value == GK.AKEY:
                 G.mode = 'Aspect'
                 G.stimScaleFactor *= 2.0 
-                G.stim.worldScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
-                G.hole.worldScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
+                G.stim.worldScale = G.stim.worldScale * 2
+                G.hole.worldScale = G.hole.worldScale * 2
             elif value == GK.SKEY:
                 G.mode = 'Scale'
-                G.stimScaleFactor /= 2.0 
-                G.stim.worldScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
-                G.hole.worldScale = [G.stimScaleFactor, G.stimScaleFactor, G.stimScaleFactor]
+                G.stim.worldScale = G.stim.worldScale / 2
+                G.hole.worldScale = G.hole.worldScale / 2
             elif value == GK.RKEY:
                 G.mode = 'Rotate'
                 G.stim.applyRotation ([0.0, 0.0, .1])
