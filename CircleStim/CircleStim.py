@@ -5,7 +5,7 @@
 from bge import logic as G
 from bge import render as R
 from bge import events as GK
-from mathutils import Vector, geometry
+from mathutils import Vector, geometry, Color
 import math as m
 
 # ###############################################################################
@@ -28,6 +28,7 @@ def init_world():
     G.mode = "Mouse"
     G.hole = objects["Hole"] 
     G.stim = objects["Stim"]
+    G.sun = objects["Sun"]
     # G.hole = objects["Suzanne"]
 
     G.stimRot = 0.0
@@ -60,20 +61,14 @@ def keyboard(cont):
 
             if value == GK.AKEY:
                 G.mode = 'Aspect'
-                G.stimScaleFactor *= 2.0 
-                G.stim.worldScale = G.stim.worldScale * 2
-                G.hole.worldScale = G.hole.worldScale * 2
             elif value == GK.SKEY:
                 G.mode = 'Scale'
-                G.stim.worldScale = G.stim.worldScale / 2
-                G.hole.worldScale = G.hole.worldScale / 2
             elif value == GK.RKEY:
                 G.mode = 'Rotate'
-                G.stim.applyRotation ([0.0, 0.0, .1])
             elif value == GK.CKEY:
                 G.mode = 'Color'
-            elif value == GK.FKEY:
-                G.mode = 'Frequency'
+            elif value == GK.TKEY:
+                G.mode = 'Temporal'
 
             elif value == GK.MKEY:
                 G.mode = 'Mouse'
@@ -92,8 +87,8 @@ def vsync (cont):
     G.hole.worldPosition = G.holeLocation.copy()
 
     # print (G.stim.worldPosition)
-    print (G.hole.worldPosition)
-    print ('vsync ')
+    # print (G.hole.worldPosition)
+    # print ('vsync ')
 
 # ###############################################################################
 #     Mouse Movement
@@ -136,3 +131,56 @@ def follow_mouse(sensor):
     # print (G.stimLocation)
     # print (G.stimLocation)
     # print (sensor.hitPosition)
+
+def mouse_down(cont):
+    owner = cont.owner
+    sensor = cont.sensors["s_mouse_down"]
+    mouse_op ('down')
+
+
+def mouse_up(cont):
+    owner = cont.owner
+    sensor = cont.sensors["s_mouse_up"]
+    mouse_op('up')
+
+def mouse_op (direction):
+    if G.mode == 'Aspect':
+        factor = 1.1 
+        if direction == 'down': 
+            factor = 1.0 / factor
+        G.hole.worldScale = Vector((G.hole.worldScale.x * factor,  G.hole.worldScale.y * 1.0 / factor, G.hole.worldScale.z))
+    elif G.mode == 'Scale':
+        factor = 1.1 
+        if direction == 'down': 
+            factor = 1.0 / factor
+        G.hole.worldScale = G.hole.worldScale * factor
+    elif G.mode == 'Rotate':
+        factor = 3.1415926 * 2 / 360 * 10    # last is degrees per click
+        if direction == 'down': 
+            factor *= -1.0
+        G.stim.applyRotation ([0.0, 0.0, factor])
+    elif G.mode == 'Temporal':
+        factor = 1.1 
+        if direction == 'down': 
+            factor = 1.0 / factor
+        G.stim.worldScale = G.stim.worldScale * factor
+    elif G.mode == 'Color':
+        factor = 1.1 
+        if direction == 'down': 
+            factor = 1.0 / factor
+        print ('sun', G.sun.color)
+        # G.sun.color[0] *= factor
+        # G.sun.color[1] = 0.5
+        hsv = Color(G.sun.color)
+        hsv.h *= factor
+        hsv.s = 0.5
+        hsv.v = 1.0
+        G.sun.color = (255, 0, 0)
+        print (hsv)
+    elif G.mode == GK.MKEY:
+        pass
+    elif G.mode == GK.ZKEY:
+        G.stim.worldPosition = [0, 0, G.stim.worldPosition[2]]
+        G.hole.worldPosition = [0, 0, G.hole.worldPosition[2]]
+
+
