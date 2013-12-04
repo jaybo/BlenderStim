@@ -8,6 +8,25 @@ from bge import events as GK
 from mathutils import Vector, geometry, Color
 import math as m
 
+# import site
+# print (site.getusersitepackages())
+# site.addsitedir("/Python/Lib/site-packages/numpy/")
+
+# import sys
+# sys.path.append("/Python/Lib/site-packages/numpy/")
+
+# from numpy.random import randn 
+# import sys 
+# print (sys.version_info)
+
+# pythonDir = 'C:\WinPython-64bit-3.3.2.3\python-3.3.2.amd64\Lib\site-packages'
+# sys.path.append(pythonDir + '\dateutil') 
+# print (sys.path)
+# import dateutil
+
+# import sci_viz 
+# from sci_viz.node_tools import make_link
+
 # ###############################################################################
 # Script to initialize the world.  This script is run once on startup
 # ###############################################################################
@@ -24,7 +43,7 @@ def init_world():
 
     R.showMouse(True)
 
-    # Modes - Mouse (default) [S]cale [R]otate [C]olor [F]requency [A]spect
+    print ('[A]spect [S]cale [R]otate [C]olor [F]requency [A]spect [M]askRotate')
     G.mode = "Mouse"
     G.hole = objects["Hole"] 
     G.stim = objects["Stim"]
@@ -69,9 +88,8 @@ def keyboard(cont):
                 G.mode = 'Color'
             elif value == GK.TKEY:
                 G.mode = 'Temporal'
-
             elif value == GK.MKEY:
-                G.mode = 'Mouse'
+                G.mode = 'Mask'
             elif value == GK.ZKEY:
                 G.stim.worldPosition = [0, 0, G.stim.worldPosition[2]]
                 G.hole.worldPosition = [0, 0, G.hole.worldPosition[2]]
@@ -160,7 +178,7 @@ def mouse_op (direction):
             factor *= -1.0
         G.stim.applyRotation ([0.0, 0.0, factor])
     elif G.mode == 'Temporal':
-        factor = 1.1 
+        factor = 1.3 
         if direction == 'down': 
             factor = 1.0 / factor
         G.stim.worldScale = G.stim.worldScale * factor
@@ -177,8 +195,11 @@ def mouse_op (direction):
         hsv.v = 1.0
         G.sun.color = (255, 0, 0)
         print (hsv)
-    elif G.mode == GK.MKEY:
-        pass
+    elif G.mode == 'Mask':
+        factor = 3.1415926 * 2 / 360 * 10    # last is degrees per click
+        if direction == 'down': 
+            factor *= -1.0
+        G.hole.applyRotation ([0.0, 0.0, factor])
     elif G.mode == GK.ZKEY:
         G.stim.worldPosition = [0, 0, G.stim.worldPosition[2]]
         G.hole.worldPosition = [0, 0, G.hole.worldPosition[2]]
