@@ -13,6 +13,8 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	LCr_Connect();
+
+	getchar();
 	return 0;
 }
 
@@ -29,7 +31,7 @@ bool LCr_Connect()
 	USB_Open();
 
 	// Display GUI Version #
-	sprintf(versionStr, "DLP LightCrafter 4500 Init - %d.%d", APP_VERSION_MAJOR, APP_VERSION_MINOR);
+	sprintf(versionStr, "DLP LightCrafter 4500 Init - %d.%d\n", APP_VERSION_MAJOR, APP_VERSION_MINOR);
 	printf(versionStr);
 
 	if (USB_IsConnected())
@@ -122,9 +124,28 @@ void LCr_Reset()
 	LCR_SoftwareReset();
 }
 
-#ifdef foo
-void MainWindow::on_SourceSetBut_clicked()
+
+void LCr_180HzFromHDMIMode()
 {
+	LCR_ClearPatLut();
+	LCR_AddToPatLut(
+		2,		// int TrigType
+		0,		// int PatNum
+		7,		// int BitDepth
+		1,		// int LEDSelect
+		false,	// bool InvertPat
+		false,	// bool InsertBlack
+		false,	// bool BufSwap
+		false	// bool trigOutPrev))
+		);
+
+	LCR_SetMode(true);					// Pattern display mode
+	LCR_SetInputSource(3, 24);			// FPD-Link
+
+	LCR_SetPatternDisplayMode(true);	// FPD-Link
+
+
+#ifdef foo
 	unsigned int index = ui->InputSourceList->currentIndex();
 	if (index == 0 || index == 3)
 	{
@@ -144,9 +165,10 @@ void MainWindow::on_SourceSetBut_clicked()
 			LCR_SetInputSource(ui->InputSourceList->currentIndex(), 0);
 		LCR_LoadSplash(ui->InputSourceOptionList->currentIndex());
 	}
+#endif
 }
 
-
+#ifdef foo
 void MainWindow::on_sendLUT_pushButton_clicked()
 {
 	int i, numLutEntries = 0;

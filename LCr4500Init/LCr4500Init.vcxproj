@@ -101,7 +101,6 @@
     <None Include="..\DLPLCR4500_v1.2_SourceFiles\GUI\hidapi-master\windows\Release\hidapi.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\DLPLCR4500_v1.2_SourceFiles\GUI\hidapi-master\windows\Release\hidapi.lib" />
     <Library Include="hidapi.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
