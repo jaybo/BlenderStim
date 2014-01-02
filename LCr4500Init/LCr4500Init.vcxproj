@@ -84,6 +84,7 @@
   <ItemGroup>
     <ClInclude Include="API.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="getopt.h" />
     <ClInclude Include="hidapi.h" />
     <ClInclude Include="LCr4500Init.h" />
     <ClInclude Include="stdafx.h" />
@@ -92,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="API.cpp" />
+    <ClCompile Include="getopt.c" />
     <ClCompile Include="LCr4500Init.cpp" />
     <ClCompile Include="hid.c" />
     <ClCompile Include="stdafx.cpp" />
