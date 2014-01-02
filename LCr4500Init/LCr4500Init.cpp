@@ -12,9 +12,17 @@
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	for (int n = 1; n < argc; n++)
+	{
+
+	}
+
 	LCr_Connect();
+	LCr_180HzFromHDMIMode();
+	LCr_Status();
 
 	getchar();
+
 	return 0;
 }
 
@@ -30,8 +38,8 @@ bool LCr_Connect()
 		USB_Close();
 	USB_Open();
 
-	// Display GUI Version #
-	sprintf(versionStr, "DLP LightCrafter 4500 Init - %d.%d\n", APP_VERSION_MAJOR, APP_VERSION_MINOR);
+	// Display App Version #
+	sprintf_s(versionStr, "DLP LightCrafter 4500 Init - %d.%d\n", APP_VERSION_MAJOR, APP_VERSION_MINOR);
 	printf(versionStr);
 
 	if (USB_IsConnected())
@@ -39,20 +47,20 @@ bool LCr_Connect()
 		
 		if (LCR_GetVersion(&App_ver, &API_ver, &SWConfig_ver, &SeqConfig_ver) == 0)
 		{
-			sprintf(versionStr, "APIVer:    %d.%d.%d", (API_ver >> 24), ((API_ver << 8) >> 24), ((API_ver << 16) >> 16));
+			sprintf_s(versionStr, "APIVer:    %d.%d.%d", (API_ver >> 24), ((API_ver << 8) >> 24), ((API_ver << 16) >> 16));
 			printf(versionStr);
-			sprintf(versionStr, "AppVer:    %d.%d.%d", (App_ver >> 24), ((App_ver << 8) >> 24), ((App_ver << 16) >> 16));
+			sprintf_s(versionStr, "AppVer:    %d.%d.%d", (App_ver >> 24), ((App_ver << 8) >> 24), ((App_ver << 16) >> 16));
 			printf(versionStr);
-			sprintf(versionStr, "SWConfig:  %d.%d.%d", (SWConfig_ver >> 24), ((SWConfig_ver << 8) >> 24), ((SWConfig_ver << 16) >> 16));
+			sprintf_s(versionStr, "SWConfig:  %d.%d.%d", (SWConfig_ver >> 24), ((SWConfig_ver << 8) >> 24), ((SWConfig_ver << 16) >> 16));
 			printf(versionStr);
-			sprintf(versionStr, "SeqConfig: %d.%d.%d", (SeqConfig_ver >> 24), ((SeqConfig_ver << 8) >> 24), ((SeqConfig_ver << 16) >> 16));
+			sprintf_s(versionStr, "SeqConfig: %d.%d.%d", (SeqConfig_ver >> 24), ((SeqConfig_ver << 8) >> 24), ((SeqConfig_ver << 16) >> 16));
 			printf(versionStr);
 		}
 		
 		if (LCR_MemRead(0xF902C000, &FW_ver) == 0)
 		{
 			FW_ver &= 0xFFFFFF;
-			sprintf(versionStr, "Firmware:  %d.%d.%d", (FW_ver >> 16), ((FW_ver << 16) >> 24), ((FW_ver << 24) >> 24));
+			sprintf_s(versionStr, "Firmware:  %d.%d.%d", (FW_ver >> 16), ((FW_ver << 16) >> 24), ((FW_ver << 24) >> 24));
 			printf(versionStr);
 
 			// When GUI is first opened, check if old firmware is present & prompt user to upload new version if it is
@@ -62,21 +70,9 @@ bool LCr_Connect()
 			FirstConnection = FALSE;
 			}*/
 		}
-		//emit on_GetStatusPushButton_clicked();
 
-		//if (LCR_GetMode(&SLmode) == 0)
-		//{
-		//	if (SLmode)
-		//	{
-		//		ui->Radiobutton_SLmode->setChecked(true);
-		//		ui->RadioButton_videoMode->setChecked(false);
-		//	}
-		//	else
-		//	{
-		//		ui->Radiobutton_SLmode->setChecked(false);
-		//		ui->RadioButton_videoMode->setChecked(true);
-		//	}
-		//}
+		LCr_Status();
+
 		return true;
 	}
 	return false;
@@ -125,47 +121,135 @@ void LCr_Reset()
 }
 
 
+#define FRAME_PERIOD 16667		// microseconds
+#define EXPOSURE_PERIOD 5555	// microseconds
+#define NUMBER_OF_LUT_ENTRIES  1
+#define WHITE_NOT_RGB	true	//  if true, output is white, else RGB for associated channel
+
 void LCr_180HzFromHDMIMode()
 {
+	printf("LCr_180HzFromHDMIMode");
+
 	LCR_ClearPatLut();
-	LCR_AddToPatLut(
+
+	if (LCR_AddToPatLut(
 		2,		// int TrigType
 		0,		// int PatNum
 		7,		// int BitDepth
-		1,		// int LEDSelect
+		WHITE_NOT_RGB ? 7 : 1,		// int LEDSelect
 		false,	// bool InvertPat
 		false,	// bool InsertBlack
 		false,	// bool BufSwap
 		false	// bool trigOutPrev))
-		);
-
-	LCR_SetMode(true);					// Pattern display mode
-	LCR_SetInputSource(3, 24);			// FPD-Link
-
-	LCR_SetPatternDisplayMode(true);	// FPD-Link
-
-
-#ifdef foo
-	unsigned int index = ui->InputSourceList->currentIndex();
-	if (index == 0 || index == 3)
+		) < 0)
 	{
-		LCR_SetInputSource(ui->InputSourceList->currentIndex(), ui->InputSourceOptionList->currentIndex());
+		printf("Error LCR_AddToPatLut1");
+		return;
 	}
-	else if (index == 1)
-	{
-		LCR_SetInputSource(ui->InputSourceList->currentIndex(), 0);
-		LCR_SetTPGSelect(ui->InputSourceOptionList->currentIndex());
-	}
-	else
-	{
-		unsigned int source, portWidth;
 
-		LCR_GetInputSource(&source, &portWidth);
-		if (source != 2)
-			LCR_SetInputSource(ui->InputSourceList->currentIndex(), 0);
-		LCR_LoadSplash(ui->InputSourceOptionList->currentIndex());
+	if (NUMBER_OF_LUT_ENTRIES > 1)
+	{
+		if (LCR_AddToPatLut(
+			2,		// int TrigType
+			1,		// int PatNum
+			7,		// int BitDepth
+			WHITE_NOT_RGB ? 7 : 2,		// int LEDSelect
+			false,	// bool InvertPat
+			false,	// bool InsertBlack
+			false,	// bool BufSwap
+			false	// bool trigOutPrev))
+			) < 0)
+		{
+			printf("Error LCR_AddToPatLut2");
+			return;
+		}
 	}
-#endif
+
+	if (NUMBER_OF_LUT_ENTRIES > 2)
+	{
+		if (LCR_AddToPatLut(
+			2,		// int TrigType
+			2,		// int PatNum
+			7,		// int BitDepth
+			WHITE_NOT_RGB ? 7 : 4,		// int LEDSelect
+			false,	// bool InvertPat
+			false,	// bool InsertBlack
+			false,	// bool BufSwap
+			false	// bool trigOutPrev))
+			) < 0)
+		{
+			printf("Error LCR_AddToPatLut3");
+			return;
+		}
+	}
+	if (LCR_SetMode(true) < 0) 					// Pattern display mode
+	{
+		printf("Error LCR_SetMode");
+		return;
+	}
+
+	if (LCR_SetInputSource(3, 24) < 0)			// FPD-Link, 24 bit
+	{
+		printf("Error LCR_SetInputSource");
+		return;
+	}
+
+	if (LCR_SetPatternDisplayMode(true) < 0)	// FPD-Link
+	{
+		printf("Error LCR_SetPatternDisplayMode");
+		return;
+	}
+
+	if (LCR_PatternDisplay(0) < 0)				// Stop Pattern Display
+	{
+		printf("Error LCR_PatternDisplay");
+		return;
+	}
+
+	if (LCR_SetPatternConfig(
+		NUMBER_OF_LUT_ENTRIES /*numLutEntries*/,
+		true /*repeat*/, 
+		1 /*numPatsForTrigOut2*/, 
+		0 /*numSplashLutEntries*/) < 0)
+	{
+		printf("Error LCR_SetPatternConfig");
+		return;
+	}
+	if (LCR_SetExposure_FramePeriod(EXPOSURE_PERIOD /*unsigned int exposurePeriod*/, FRAME_PERIOD /*unsigned int framePeriod*/) < 0)
+	{
+		printf("Error LCR_SetExposure_FramePeriod");
+		return;
+	}
+	if (LCR_SetPatternTriggerMode(0) < 0)		// VSync triggers pattern
+	{
+		printf("Error Sending trigger Mode");
+		return;
+	}
+
+	if (LCR_SendPatLut() < 0)
+	{
+		printf("Error LCR_SendPatLut");
+		return;
+	}
+	//if (LCR_SendSplashLut(&splashLut[0], numSplashLutEntries) < 0)
+	//{
+	//	printf("Error Sending Image LUT");
+	//	return;
+	//}
+
+	unsigned int status;
+	if (LCR_ValidatePatLutData(&status) < 0)
+	{
+		printf("Error validating LUT data");
+		return;
+	}
+	
+	if (LCR_PatternDisplay(2) < 0) //Start pattern display
+	{
+		printf("Error starting pattern display");
+		return;
+	}
+
 }
 
 #ifdef foo
