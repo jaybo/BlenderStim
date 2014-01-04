@@ -1,4 +1,4 @@
-// DLP4500Init.cpp : Defines the entry point for the console application.
+// LCr4500Init.cpp : Command line application for TI LightCrafter 4500 DLP.
 //
 
 #include <stdlib.h>
@@ -12,32 +12,45 @@
 #define APP_VERSION_MAJOR 1
 #define APP_VERSION_MINOR 1
 
+enum Command {
+	CMD_RESET,
+	CMD_STATUS,
+	CMD_MODE_STRUCTURED_LIGHT,
+	CMD_MODE_VIDEO
+} ;
+
 static struct {
-	int VerboseFlag;
-	int NumberOfChannels;	// 1 to 3
-	bool UseRed;
-	bool UseGreen;
-	bool UseBlue;
-	bool AsGrayscale;		 
+	Command Function;
+	int ShowVersion;
+	bool RedLED;
+	bool GreenLED;
+	bool BlueLED;
+	bool Grayscale;		// All LEDs on		 
 } GlobalOptions;
+
+const bool UseGetchar = true;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
 	int c;
 
+	GlobalOptions.Grayscale = true;
+
 	while (1)
 	{
 		static struct option long_options[] =
 		{
-			{ _T("verbose"), ARG_NONE, &GlobalOptions.VerboseFlag, 1 },
-			{ _T("color"), ARG_OPT, 0, _T('c') },
+			{ _T("version"), ARG_NONE, &GlobalOptions.ShowVersion, 1 },
+			{ _T("color"), ARG_REQ, 0, _T('c') },
 			{ _T("status"), ARG_NONE, 0, _T('s') },
-			{ _T("video"), ARG_NONE, 0, _T('v') },
+			{ _T("powerdown"), ARG_NONE, 0, _T('p') },
+			{ _T("mode"), ARG_REQ, 0, _T('m') },
+			{ _T("help"), ARG_NONE, 0, _T('h') },
 			{ ARG_NULL, ARG_NULL, ARG_NULL, ARG_NULL }
 		};
 
 		int option_index = 0;
-		c = getopt_long(argc, argv, _T("vc:?h"), long_options, &option_index);
+		c = getopt_long(argc, argv, _T("vpsc:?h"), long_options, &option_index);
 
 		// Check for end of operation or error
 		if (c == -1)
@@ -58,25 +71,40 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		case _T('c'):
 			_tprintf(_T("option -c with value `%s'\n"), optarg);
+			if (UseGetchar) getchar();
 			break;
 
-		case _T('s'):
+		case _T('s'):		// Status
 			LCr_Connect();
 			LCr_Status();
-			getchar();
+			if (UseGetchar) getchar();
 			return 0;
 			break;
 
-		case _T('v'):
+		case _T('p'):		// Powerdown aka Standby
 			LCr_Connect();
-			//LCr_Status();
-			LCr_StandardVideoMode();
+			LCr_Standby();
+			if (UseGetchar) getchar();
 			return 0;
+			break;
+
+
+		case _T('m'):
+			if (optarg){
+				if ((optarg[0]) == _T('v'))
+				{
+					LCr_Connect();
+					LCr_StandardVideoMode();
+					if (UseGetchar) getchar();
+					return 0;
+				}
+			}
 			break;
 
 		case '?':
 		case 'h':
-			_tprintf(_T("usage:  --c [R|B|G|W] --video --status"));
+			_tprintf(_T("usage:  --c [R|B|G|W] --mode [video|structuredlight] --reset --status --version --powerdown\n"));
+			return 0;
 			break;
 
 		default:
@@ -119,9 +147,8 @@ bool LCr_Connect()
 	sprintf_s(versionStr, "DLP LightCrafter 4500 Init - %d.%d\n", APP_VERSION_MAJOR, APP_VERSION_MINOR);
 	printf(versionStr);
 
-	if (USB_IsConnected())
+	if (USB_IsConnected() && GlobalOptions.ShowVersion)
 	{
-		
 		if (LCR_GetVersion(&App_ver, &API_ver, &SWConfig_ver, &SeqConfig_ver) == 0)
 		{
 			sprintf_s(versionStr, "APIVer:    %d.%d.%d\n", (API_ver >> 24), ((API_ver << 8) >> 24), ((API_ver << 16) >> 16));
@@ -147,8 +174,6 @@ bool LCr_Connect()
 			FirstConnection = FALSE;
 			}*/
 		}
-
-		LCr_Status();
 
 		return true;
 	}
@@ -210,8 +235,8 @@ void LCr_StandardVideoMode()
 
 
 
-#define FRAME_PERIOD 5300		// microseconds
-#define EXPOSURE_PERIOD 5300	// microseconds
+#define FRAME_PERIOD 5000		// microseconds
+#define EXPOSURE_PERIOD 5000	// microseconds
 #define NUMBER_OF_LUT_ENTRIES 3
 #define WHITE_NOT_RGB	true	//  if true, output is white, else RGB for associated channel
 
@@ -248,6 +273,8 @@ void LCr_180HzFromHDMIMode()
 	}
 
 	LCR_ClearPatLut();
+
+	int color = GlobalOptions.RedLED ? 1 : GlobalOptions.GreenLED ? 2 : GlobalOptions.BlueLED ? 4 : 7 /*white*/;
 
 	if (LCR_AddToPatLut(
 		1,		// int TrigType
