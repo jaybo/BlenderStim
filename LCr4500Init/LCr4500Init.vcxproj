@@ -100,9 +100,6 @@
     <ClCompile Include="usb.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\DLPLCR4500_v1.2_SourceFiles\GUI\hidapi-master\windows\Release\hidapi.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Library Include="hidapi.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
