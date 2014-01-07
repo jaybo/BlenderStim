@@ -33,7 +33,7 @@ static struct {
     bool RGB;
 } GlobalOptions;
 
-const bool UseGetchar = false;
+const bool UseGetchar = false;      // wait for carriage return after running command
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -179,7 +179,7 @@ int _tmain(int argc, _TCHAR* argv[])
             // nothing to do
             break;
         case CMD_MODE_STRUCTURED_LIGHT:			// 180Hz mode
-            LCr_180HzFromHDMIMode();
+            LCr_StructuredLightMode();
             break;
         case CMD_MODE_VIDEO:					// 60Hz mode
             LCr_StandardVideoMode();
@@ -299,21 +299,18 @@ void LCr_Reset()
 
 void LCr_Standby(bool powerdown)
 {
-    LCR_SetPowerMode(powerdown ? 1 : 0);
+    LCR_SetPowerMode(powerdown);
 }
 
 void LCr_StandardVideoMode()
 {
+    printf("LCr_StandardVideoMode\n");
     LCR_SetPowerMode(0);
     LCR_SetMode(0);
 }
 
-
-
 #define FRAME_PERIOD 5000		// microseconds
 #define EXPOSURE_PERIOD 5000	// microseconds
-#define NUMBER_OF_LUT_ENTRIES 3
-#define WHITE_NOT_RGB	true	//  if true, output is white, else RGB for associated channel
 
 struct LutEntry {
     int TrigType;
@@ -326,47 +323,46 @@ struct LutEntry {
     bool trigOutPrev;
 };
 
-static LutEntry  LutEntries[] = {
-    {
-        1,		// int TrigType
-        0,		// int PatNum
-        7,		// int BitDepth
-        (GlobalOptions.RGB || GlobalOptions.RedOnly) ? 1 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
-        false,	// bool InvertPat
-        false,	// bool InsertBlack
-        true,	// bool BufSwap
-        false	// bool trigOutPrev))
-    },
-    {
-        3,		// int TrigType
-        1,		// int PatNum
-        7,		// int BitDepth
-        (GlobalOptions.RGB || GlobalOptions.GreenOnly) ? 2 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
-        false,	// bool InvertPat
-        false,	// bool InsertBlack
-        false,	// bool BufSwap
-        false	// bool trigOutPrev))
-    },
-    {
-        3,		// int TrigType
-        2,		// int PatNum
-        7,		// int BitDepth
-        (GlobalOptions.RGB || GlobalOptions.BlueOnly) ? 4 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
-        false,	// bool InvertPat
-        false,	// bool InsertBlack
-        false,	// bool BufSwap
-        false	// bool trigOutPrev))
 
-    }
-};
-
-void LCr_180HzFromHDMIMode()
+void LCr_StructuredLightMode()
 {
-    unsigned char splashLut[64];
+    printf("LCr_StructuredLightMode\n");
 
-    splashLut[0] = 0;	// Magic
+    LutEntry LutEntries[] = {
+        {
+            1,		// int TrigType
+            0,		// int PatNum
+            7,		// int BitDepth
+            (GlobalOptions.RGB || GlobalOptions.GreenOnly) ? 2 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
+            false,	// bool InvertPat
+            false,	// bool InsertBlack
+            false,	// bool BufSwap
+            false	// bool trigOutPrev))
+        },
+        {
+            3,		// int TrigType
+            1,		// int PatNum
+            7,		// int BitDepth
+            (GlobalOptions.RGB || GlobalOptions.RedOnly) ? 1 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
+            false,	// bool InvertPat
+            false,	// bool InsertBlack
+            false,	// bool BufSwap
+            false	// bool trigOutPrev))
+        },
+        {
+            3,		// int TrigType
+            2,		// int PatNum
+            7,		// int BitDepth
+            (GlobalOptions.RGB || GlobalOptions.BlueOnly) ? 4 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
+            false,	// bool InvertPat
+            false,	// bool InsertBlack
+            false,	// bool BufSwap
+            false	// bool trigOutPrev))
 
-    printf("LCr_180HzFromHDMIMode\n");
+        }
+    };
+
+    int NumberOfLutEntries = (sizeof(LutEntries) / sizeof(LutEntry));
 
     if (LCR_SetMode(true) < 0) 					// Pattern display mode
     {
@@ -394,63 +390,28 @@ void LCr_180HzFromHDMIMode()
 
     LCR_ClearPatLut();
 
-    int color = GlobalOptions.RedOnly ? 1 : GlobalOptions.GreenOnly ? 2 : GlobalOptions.BlueOnly ? 4 : 7 /*white*/;
-
-    if (LCR_AddToPatLut(
-        1,		// int TrigType
-        0,		// int PatNum
-        7,		// int BitDepth
-        (GlobalOptions.RGB || GlobalOptions.RedOnly) ? 1 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
-        false,	// bool InvertPat
-        false,	// bool InsertBlack
-        true,	// bool BufSwap
-        false	// bool trigOutPrev))
-        ) < 0)
-    {
-        printf("Error LCR_AddToPatLut1\n");
-        return;
-    }
-
-    if (NUMBER_OF_LUT_ENTRIES > 1)
+    for (int j = 0; j < NumberOfLutEntries; j++)
     {
         if (LCR_AddToPatLut(
-            3,		// int TrigType
-            1,		// int PatNum
-            7,		// int BitDepth
-            (GlobalOptions.RGB || GlobalOptions.GreenOnly) ? 2 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
-            false,	// bool InvertPat
-            false,	// bool InsertBlack
-            false,	// bool BufSwap
-            false	// bool trigOutPrev))
+            LutEntries[j].TrigType,
+            LutEntries[j].PatNum,
+            LutEntries[j].BitDepth,
+            LutEntries[j].LEDSelect,
+            LutEntries[j].InvertPat,
+            LutEntries[j].InsertBlack,
+            LutEntries[j].BufSwap,
+            LutEntries[j].trigOutPrev
             ) < 0)
         {
-            printf("Error LCR_AddToPatLut2\n");
-            return;
-        }
-    }
-
-    if (NUMBER_OF_LUT_ENTRIES > 2)
-    {
-        if (LCR_AddToPatLut(
-            3,		// int TrigType
-            2,		// int PatNum
-            7,		// int BitDepth
-            (GlobalOptions.RGB || GlobalOptions.BlueOnly) ? 4 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
-            false,	// bool InvertPat
-            false,	// bool InsertBlack
-            false,	// bool BufSwap
-            false	// bool trigOutPrev))
-            ) < 0)
-        {
-            printf("Error LCR_AddToPatLut3\n");
+            printf("Error LCR_AddToPatLut for index: %d\n", j);
             return;
         }
     }
 
     if (LCR_SetPatternConfig(
-        NUMBER_OF_LUT_ENTRIES /*numLutEntries*/,
+        NumberOfLutEntries /*numLutEntries*/,
         1 /*repeat*/, 
-        NUMBER_OF_LUT_ENTRIES /*numPatsForTrigOut2*/,
+        NumberOfLutEntries /*numPatsForTrigOut2*/,
         0 /*numSplashLutEntries*/) < 0)
     {
         printf("Error LCR_SetPatternConfig\n");
