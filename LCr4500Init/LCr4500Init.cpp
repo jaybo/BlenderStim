@@ -335,7 +335,7 @@ void LCr_StructuredLightMode()
             7,		// int BitDepth
             (GlobalOptions.RGB || GlobalOptions.GreenOnly) ? 2 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
             false,	// bool InvertPat
-            false,	// bool InsertBlack
+            true,	// bool InsertBlack
             false,	// bool BufSwap
             false	// bool trigOutPrev))
         },
@@ -345,7 +345,7 @@ void LCr_StructuredLightMode()
             7,		// int BitDepth
             (GlobalOptions.RGB || GlobalOptions.RedOnly) ? 1 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
             false,	// bool InvertPat
-            false,	// bool InsertBlack
+            true,	// bool InsertBlack
             false,	// bool BufSwap
             false	// bool trigOutPrev))
         },
@@ -355,7 +355,7 @@ void LCr_StructuredLightMode()
             7,		// int BitDepth
             (GlobalOptions.RGB || GlobalOptions.BlueOnly) ? 4 : GlobalOptions.Grayscale ? 7 : 0,		// int LEDSelect
             false,	// bool InvertPat
-            false,	// bool InsertBlack
+            true,	// bool InsertBlack
             false,	// bool BufSwap
             false	// bool trigOutPrev))
 
@@ -412,7 +412,7 @@ void LCr_StructuredLightMode()
         NumberOfLutEntries /*numLutEntries*/,
         1 /*repeat*/, 
         NumberOfLutEntries /*numPatsForTrigOut2*/,
-        0 /*numSplashLutEntries*/) < 0)
+        1 /*numSplashLutEntries*/) < 0)
     {
         printf("Error LCR_SetPatternConfig\n");
         return;
@@ -436,11 +436,14 @@ void LCr_StructuredLightMode()
         return;
     }
 
-    //if (LCR_SendSplashLut(&splashLut[0], 1) < 0)
-    //{
-    //	printf("Error Sending Image LUT");
-    //	return;
-    //}
+    unsigned char splashLut[64];
+    splashLut[0] = 0;	// No clue what I'm doing here...
+
+    if (LCR_SendSplashLut(&splashLut[0], 1) < 0)
+    {
+    	printf("Error Sending Image LUT");
+    	return;
+    }
 
     unsigned int status;
     if (LCR_ValidatePatLutData(&status) < 0)
