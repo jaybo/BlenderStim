@@ -18,7 +18,11 @@ def init_world():
     G.green = objects["green"]
     G.blue = objects["blue"]
 
-    G.color  = 'red'
+    G.green.visible = True
+    G.red.visible = True
+    G.blue.visible = True
+
+    G.vsyncCount = 0
     print ('init_world')
 
 
@@ -45,32 +49,44 @@ def keyboard(cont):
 def vsync (cont):
     owner = cont.owner
     sensor = cont.sensors["s_vsync"]
-
-    if G.color == 'red':
-        G.red.visible = False
-        G.green.visible = True
-        G.color = 'green'
-    elif G.color == 'green':
+        
+    G.vsyncCount += 1
+    i = (G.vsyncCount) % 3
+    
+    
+    if i == 0:
         G.green.visible = False
-        G.blue.visible = True
-        G.color = 'blue'
-    elif G.color == 'blue':
-        G.blue.visible = False
         G.red.visible = True
-        G.color = 'red'
+        G.blue.visible = False
+        #G.green.worldPosition = [G.green.worldPosition[0],G.green.worldPosition[1], 0]
+        #G.red.worldPosition = [G.red.worldPosition[0],G.red.worldPosition[1], 1]
+    elif i == 1:
+        G.green.visible = True
+        G.red.visible = False
+        G.blue.visible = False
+        #G.red.worldPosition = [G.red.worldPosition[0],G.red.worldPosition[1], 0]
+        #G.blue.worldPosition = [G.blue.worldPosition[0],G.blue.worldPosition[1], 1]
+    elif i == 2:
+        G.green.visible = False
+        G.red.visible = False
+        G.blue.visible = True
+        #G.blue.worldPosition = [G.blue.worldPosition[0],G.blue.worldPosition[1], 0]
+        #G.green.worldPosition = [G.green.worldPosition[0],G.green.worldPosition[1], 1]
 
-    # print ('vsync ')
+    print ('vsync ', i, G.vsyncCount)
 
 # ###############################################################################
 #     Mouse Movement
 # ###############################################################################
 def mouse_move(cont):
     owner = cont.owner
-    sensor = cont.sensors["s_movement"]
 
-    #print(dir(sensor))
-
-    follow_mouse_intersection(sensor)
+    G.vsyncCount += 1
+    #print(G.color)
+    #G.red.visible = False
+    #G.green.visible = True
+    #G.color = 'green'
+    #follow_mouse_intersection(sensor)
     # follow_mouse(sensor)
 
 

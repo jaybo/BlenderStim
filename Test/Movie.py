@@ -17,7 +17,8 @@ if "Video" in obj:
     
     # update the video 
     video.refresh(True)
-
+    #print scene.render.fps
+    #print video.source.maxrate, video.source.minrate
                         
 # if video hasn't been added 
 else:
@@ -43,6 +44,7 @@ else:
     
     # set scaling
     video.source.scale = True   
+    #print(video.source.maxrate)
     
     # save mirror as an object variable
     obj["Video"] = video

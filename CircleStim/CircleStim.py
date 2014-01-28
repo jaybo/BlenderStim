@@ -52,10 +52,10 @@ def init_world():
 
     G.stimRot = 0.0
     G.stimScaleFactor = 1.0 
-    G.stimLocation = [0.0, 0.0, 0.0]
+    G.stimLocation = [0.0, 0.0, G.stim.worldPosition[2]]
 
     G.holeScaleFactor = 1.0 
-    G.holeLocation = [0.0, 0.0, 0.0]
+    G.holeLocation = [0.0, 0.0, G.hole.worldPosition[2]]
     print (G.hole)
     print (G.stim)
 
@@ -118,7 +118,7 @@ def mouse_move(cont):
     #print(dir(sensor))
 
     follow_mouse_intersection(sensor)
-    # follow_mouse(sensor)
+    #follow_mouse(sensor)
 
 
 def follow_mouse_intersection(sensor):
