@@ -63,3 +63,9 @@ else:
     # start the video
     video.source.play()
 
+def vsync():
+    obj = controller.owner
+    video = obj["Video"]
+
+    # update the video 
+    video.refresh(True)

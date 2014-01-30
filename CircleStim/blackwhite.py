@@ -10,10 +10,16 @@ from mathutils import Vector, geometry, Color
 import math as m
 
 # change these values
-G.duration = 60.0
+G.duration = 60.0 * 10
 G.prerollPostroll = 0.5
 
-
+print (G.getLogicTicRate())
+#G.setLogicTicRate(180)
+print ("LogicTicRate:    ",  G.getLogicTicRate())
+print ("MaxLogicFrame:   ",  G.getMaxLogicFrame())
+print ("MaxPhysicsFrame: ",  G.getMaxPhysicsFrame())
+#G.setMaxLogicFrame(1)
+print ("MaxLogicFrame: ",  G.getMaxLogicFrame())
 
 def init_world():
     G.scene = G.getCurrentScene()
@@ -25,15 +31,17 @@ def init_world():
     G.green = objects["green"]
     G.blue = objects["blue"]
     G.white = objects["white"]
+    G.white1 = objects["white.001"]
     G.black = objects["black"]
     G.white.visible = False
     
     G.vsyncCount = 0
     
     G.things = []
-    for j in range (30):
+    for j in range (150):
         o = G.scene.addObject( "Cube", "Cube", 0)
         o.color=[random(), random(), random(),1]
+        o.localScale=[0.25, 0.25, 0.25]
         o.worldPosition = [random()*10,random()*10,random()*10]
         G.things.append(o)
 
@@ -67,7 +75,7 @@ def vsync (cont):
     sensor = cont.sensors["s_vsync"]
 
     G.vsyncCount += 1
-        
+          
     if G.state == "preroll":
         if G.vsyncCount >= G.prerollFrames:
             G.vsyncCount = 0
@@ -77,26 +85,28 @@ def vsync (cont):
             G.vsyncCount = 0
             G.state = "done"
     elif G.state == "done":
-        pass
+        #pass
+        G.state = "main"
     else:
         if G.vsyncCount >= G.frames:
             G.state = "postroll"
+            G.white.visible = False
+            G.black.visible = True
             G.vsyncCount = 0
         else:
-            
+            rscale = 0.0025
             for o in G.things:
-                o.worldPosition = [random()*10,random()*10,random()*10]
+                k = 0
+                #o.worldPosition = [random()*10,random()*10,random()*10]
+                o.applyMovement ([(random()-0.5) * rscale, (random()-0.5) * rscale,  (random()-0.5) * rscale], True)
                 
-            i = (G.vsyncCount % 2)
+            viz = (G.vsyncCount & 1) == 1
                 
-            if i == 0:
-                G.white.visible = True
-                G.black.visible = False
-            elif i == 1:
-                G.white.visible = False
-                G.black.visible = True
-
-            print ('vsync ', i, G.vsyncCount)
+            G.white.visible = not viz
+            G.black.visible = viz
+            G.white1.visible = viz
+            #G.red.worldPosition[1] = G.red.worldPosition[1] + .002 
+            print ('vsync ', viz, G.vsyncCount)
 
 # ###############################################################################
 #     Mouse Movement
