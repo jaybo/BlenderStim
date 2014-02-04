@@ -6,6 +6,8 @@
 *.user
 *.sln.docstates
 __pycache__/
+*.blend1
+*.blend2
 
 # Build results
 
