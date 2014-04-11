@@ -1,0 +1,1 @@
+C:\Users\jayb\Documents\GitHub\blender-git\install\win64-vc12\blenderplayer.exe -con C:\Users\jayb\Documents\GitHub\BlenderStim\MultiLoader\TerrainDome.blend

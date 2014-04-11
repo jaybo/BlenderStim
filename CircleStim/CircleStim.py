@@ -44,7 +44,7 @@ def init_world():
     R.showMouse(True)
 
     print ('[A]spect [S]cale [R]otate [C]olor [F]requency [A]spect [M]askRotate')
-    G.mode = "Mouse"
+    G.mode = "Rotate"
     G.hole = objects["Hole"] 
     G.stim = objects["Stim"]
     G.sun = objects["Sun"]

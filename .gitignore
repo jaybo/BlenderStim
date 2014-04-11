@@ -5,9 +5,11 @@
 *.suo
 *.user
 *.sln.docstates
-__pycache__/
+__pycache__
 *.blend1
 *.blend2
+*.pyc
+*.cpython-33.pyc
 
 # Build results
 

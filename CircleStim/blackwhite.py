@@ -94,7 +94,7 @@ def vsync (cont):
             G.black.visible = True
             G.vsyncCount = 0
         else:
-            rscale = 0.0025
+            rscale = 0.08
             for o in G.things:
                 k = 0
                 #o.worldPosition = [random()*10,random()*10,random()*10]
@@ -106,7 +106,7 @@ def vsync (cont):
             G.black.visible = viz
             G.white1.visible = viz
             #G.red.worldPosition[1] = G.red.worldPosition[1] + .002 
-            print ('vsync ', viz, G.vsyncCount)
+            #print ('vsync ', viz, G.vsyncCount)
 
 # ###############################################################################
 #     Mouse Movement
